@@ -14,19 +14,19 @@ namespace c10k {
     {
         inline std::uint32_t to_net32(std::uint32_t host_n)
         {
-            return ::htonl(host_n);
+            return htonl(host_n);
         }
         inline std::uint16_t to_net16(std::uint16_t host_n)
         {
-            return ::htons(host_n);
+            return htons(host_n);
         }
         inline std::uint32_t to_host32(std::uint32_t net_n)
         {
-            return ::ntohl(net_n);
+            return ntohl(net_n);
         }
         inline std::uint16_t to_host16(std::uint16_t net_n)
         {
-            return ::ntohs(net_n);
+            return ntohs(net_n);
         }
     }
 }
