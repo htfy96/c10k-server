@@ -153,12 +153,12 @@ namespace c10k
             return loop_enabled_;
         }
 
-        bool enable_loop()
+        void enable_loop()
         {
             loop_enabled_ = true;
         }
 
-        bool disable_loop()
+        void disable_loop()
         {
             loop_enabled_ = false;
         }
