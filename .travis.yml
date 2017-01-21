@@ -3,7 +3,7 @@ language: cpp
 before_script:
     - mkdir build
     - cd build
-    - cmake -DCMake_Build_Type="${BUILD_TYPE}" -DCMAKE_C_COMPILER="${X_CC}" -DCMAKE_CXX_COMPILER="${X_CXX}" ..
+    - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_C_COMPILER="${X_CC}" -DCMAKE_CXX_COMPILER="${X_CXX}" -Dc10k-build_tests=ON ..
 
 script:
     - make VERBOSE=1 -j4
