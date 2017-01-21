@@ -33,15 +33,15 @@ target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 if (c10k-build_tests)
     enable_testing()
 
-    add_executable(c10k-test test/c10k_test.cpp test/test_main.cpp)
-    target_include_directories(c10k-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(c10k-test c10k)
+    add_executable(event_loop-test test/event_loop_test.cpp test/test_main.cpp)
+    target_include_directories(event_loop-test PUBLIC ${Catch_INCLUDE_DIR})
+    target_link_libraries(event_loop-test c10k)
 
     add_executable(endian-test test/endian_test.cpp test/test_main.cpp)
     target_include_directories(endian-test PUBLIC ${Catch_INCLUDE_DIR})
     target_link_libraries(endian-test c10k)
 
-    add_test(c10k_test c10k-test)
+    add_test(event_loop_test event_loop-test)
     add_test(endian_test endian-test)
 endif()
 
