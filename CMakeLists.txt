@@ -37,6 +37,11 @@ if (c10k-build_tests)
     target_include_directories(c10k-test PUBLIC ${Catch_INCLUDE_DIR})
     target_link_libraries(c10k-test c10k)
 
+    add_executable(endian-test test/endian_test.cpp test/test_main.cpp)
+    target_include_directories(endian-test PUBLIC ${Catch_INCLUDE_DIR})
+    target_link_libraries(endian-test c10k)
+
     add_test(c10k_test c10k-test)
+    add_test(endian_test endian-test)
 endif()
 
