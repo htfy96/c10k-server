@@ -7,7 +7,7 @@ before_script:
 
 script:
     - make VERBOSE=1 -j4
-    - ctest --output-on-failure
+    - ctest --output-on-failure && valgrind --leak-check=full ctest --output-on-failure
 
 matrix:
   include:
@@ -49,3 +49,4 @@ addons:
             - cmake
             - cmake-data
             - build-essential
+            - valgrind
