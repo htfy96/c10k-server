@@ -26,7 +26,7 @@ include_directories(${spdlog_SOURCE_DIR}/include)
 ##################################
 include_directories(src)
 
-set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp src/c10k/event_loop.hpp src/c10k/event_loop.cpp src/c10k/timer_fd.hpp)
+set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp src/c10k/event_loop.hpp src/c10k/event_loop.cpp src/c10k/timer_fd.hpp src/c10k/queue.hpp)
 add_library(c10k STATIC ${c10k_SOURCE})
 target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 
@@ -41,7 +41,12 @@ if (c10k-build_tests)
     target_include_directories(endian-test PUBLIC ${Catch_INCLUDE_DIR})
     target_link_libraries(endian-test c10k)
 
+    add_executable(queue-test test/queue_test.cpp test/test_main.cpp)
+    target_include_directories(queue-test PUBLIC ${Catch_INCLUDE_DIR})
+    target_link_libraries(queue-test c10k)
+
     add_test(event_loop_test event_loop-test)
     add_test(endian_test endian-test)
+    add_test(queue_test queue-test)
 endif()
 
