@@ -123,4 +123,9 @@ namespace c10k
         call_must_ok(epoll_ctl, "epoll_ctl MODIFY", epollfd, EPOLL_CTL_MOD, fd, &new_event);
         it->second = std::move(pnewPollData);
     }
+
+    EventLoop::~EventLoop()
+    {
+        ::close(epollfd);
+    }
 }

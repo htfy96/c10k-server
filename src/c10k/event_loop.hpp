@@ -25,7 +25,10 @@ namespace c10k
     enum struct EventCategory
     {
         POLLIN = EPOLLIN,
-        POLLOUT = EPOLLOUT
+        POLLOUT = EPOLLOUT,
+        POLLRDHUP = EPOLLRDHUP,
+        POLLERR = EPOLLERR,
+        POLLHUP = EPOLLHUP
     };
 
     struct EventType
@@ -41,19 +44,25 @@ namespace c10k
                 EventType((int)ec)
         {}
 
+        EventType():
+            event_type_(0)
+        {}
+
         bool is(EventCategory ec) const
         {
-            return event_type_ & (int)ec;
+            return static_cast<bool>(event_type_ & (int)ec);
         }
 
-        void set(EventCategory ec)
+        EventType& set(EventCategory ec)
         {
             event_type_ |= (int) ec;
+            return *this;
         }
 
-        void unset(EventCategory ec)
+        EventType &unset(EventCategory ec)
         {
             event_type_ &= ~ (int)ec;
+            return *this;
         }
 
         explicit operator int() const
@@ -64,12 +73,15 @@ namespace c10k
         template<typename OST>
                 friend OST &operator <<(OST &o, EventType et)
         {
+#define GEN_PRINT_EC_DESC(X_) if (et.is(EventCategory::X_)) o << " " << #X_ << " "
             o << "[";
-            if (et.is(EventCategory::POLLIN))
-                o << " POLLIN ";
-            if (et.is(EventCategory::POLLOUT))
-                o << " POLLOUT ";
+            GEN_PRINT_EC_DESC(POLLIN);
+            GEN_PRINT_EC_DESC(POLLOUT);
+            GEN_PRINT_EC_DESC(POLLRDHUP);
+            GEN_PRINT_EC_DESC(POLLERR);
+            GEN_PRINT_EC_DESC(POLLHUP);
             o << "]";
+#undef GEN_PRINT_EC_DESC
             return o;
         }
     };
@@ -129,7 +141,7 @@ namespace c10k
         void handle_events(epoll_event *st, epoll_event *ed);
 
     public:
-        EventLoop(int max_event, const LoggerT &logger = spdlog::stdout_color_mt("Eventloop"));
+        EventLoop(int max_event, const LoggerT &logger);
         EventLoop(const EventLoop &) = delete;
         EventLoop &operator=(const EventLoop &) = delete;
 
@@ -162,6 +174,8 @@ namespace c10k
         {
             loop_enabled_ = false;
         }
+
+        ~EventLoop();
 
     };
 }
