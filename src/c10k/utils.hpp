@@ -70,6 +70,12 @@ namespace c10k
         {
             return ScopeGuard<FT1, FT2>(f1, f2);
         };
+
+        template<typename FT>
+        auto make_exit_guard(FT f_at_exit) {
+            return make_scope_guard([]() {}, f_at_exit);
+        }
+
     }
 
 }
