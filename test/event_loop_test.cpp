@@ -102,8 +102,8 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
             if (e.event_type.is(EventCategory::POLLRDHUP))
             {
                 logger->debug("main received pollrdhup, stopping...");
-                el.disable_loop();
-                close_handler(el, socketfd);
+                e.event_loop->disable_loop();
+                close_handler(*e.event_loop, socketfd);
             }
             else {
                 logger->debug("main received pollin, accepting...");
@@ -121,8 +121,8 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
                         e.event_type.is(EventCategory::POLLERR) ||
                         e.event_type.is(EventCategory::POLLHUP)) {
                         logger->debug("Err occured, closing socket {}...", accept_socketfd);
-                        el.remove_event(accept_socketfd);
-                        close_handler(el, accept_socketfd);
+                        e.event_loop->remove_event(accept_socketfd);
+                        close_handler(*e.event_loop, accept_socketfd);
                     } else {
                         int read_result = read(accept_socketfd, server_buffer + server_read_len, 956);
                         logger->debug("Read result = {}, server_read_cnt={}, server_read_len={}, errno={}", read_result,
