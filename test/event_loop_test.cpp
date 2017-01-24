@@ -97,7 +97,7 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
         call_must_ok(listen, "listen", socketfd, 1024);
         logger->debug("listen successed, socketfd={}", socketfd);
 
-        el.add_event(socketfd, EventType(EventCategory::POLLIN).set(EventCategory::POLLRDHUP), [&](const Event &e) {
+        el.add_event(socketfd, EventType {EventCategory::POLLIN, EventCategory::POLLRDHUP}, [&](const Event &e) {
             logger->debug("main socket received event {}", e.event_type);
             if (e.event_type.is(EventCategory::POLLRDHUP))
             {
@@ -111,15 +111,12 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
                 logger->debug("accepted fd={}", accept_socketfd);
                 REQUIRE(accept_socketfd > 0);
 
-                EventType e_in_and_rdhup;
-                e_in_and_rdhup.set(EventCategory::POLLIN).set(EventCategory::POLLRDHUP);
+                EventType e_in_and_rdhup {EventCategory::POLLIN, EventCategory::POLLRDHUP};
                 logger->debug("Add event on socket {}", accept_socketfd);
                 el.add_event(accept_socketfd, e_in_and_rdhup, [&](const Event &e) {
                     int accept_socketfd = e.fd;
                     logger->debug("Socket {} received event {}", accept_socketfd, e.event_type);
-                    if (e.event_type.is(EventCategory::POLLRDHUP) ||
-                        e.event_type.is(EventCategory::POLLERR) ||
-                        e.event_type.is(EventCategory::POLLHUP)) {
+                    if (e.event_type.is_err()) {
                         logger->debug("Err occured, closing socket {}...", accept_socketfd);
                         e.event_loop->remove_event(accept_socketfd);
                         close_handler(*e.event_loop, accept_socketfd);

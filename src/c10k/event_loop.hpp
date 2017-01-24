@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 #include <mutex>
+#include <initializer_list>
 #include "utils.hpp"
 
 namespace c10k
@@ -40,9 +41,17 @@ namespace c10k
                 event_type_(et)
         {}
 
+
         explicit EventType(EventCategory ec):
                 EventType((int)ec)
         {}
+
+        EventType(std::initializer_list<EventCategory> init_list):
+                event_type_(0)
+        {
+            for (auto ec: init_list)
+                set(ec);
+        }
 
         EventType():
             event_type_(0)
@@ -51,6 +60,11 @@ namespace c10k
         bool is(EventCategory ec) const
         {
             return static_cast<bool>(event_type_ & (int)ec);
+        }
+
+        bool is_err() const
+        {
+            return is(EventCategory::POLLRDHUP) || is(EventCategory::POLLERR) || is(EventCategory::POLLHUP);
         }
 
         EventType& set(EventCategory ec)
