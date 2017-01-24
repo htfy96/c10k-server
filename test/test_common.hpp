@@ -7,6 +7,9 @@
 
 
 #include <c10k/utils.hpp>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 inline int create_socket(bool blocking = true)
 {
