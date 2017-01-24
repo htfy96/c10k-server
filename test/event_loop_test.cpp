@@ -12,6 +12,7 @@
 #include <cerrno>
 #include <algorithm>
 #include <numeric>
+#include "test_common.hpp"
 
 auto ev_logger = spdlog::stdout_color_mt("Eventloop");
 auto debug_logger = spdlog::stdout_color_mt("debug");
@@ -68,17 +69,8 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
     spdlog::set_level(spdlog::level::debug);
     auto &logger = debug_logger;
 
-    int socketfd = call_must_ok(socket, "Create socket", AF_INET, SOCK_STREAM, 0);
-    sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    call_must_ok(inet_aton, "inet_aton", "127.0.0.1", &addr.sin_addr);
-    addr.sin_port = detail::to_net16(6532);
-
-    static const int ENABLE = 1;
-    int flags = call_must_ok(fcntl, "F_GETFL", socketfd, F_GETFL, 0);
-    flags |= O_NONBLOCK;
-    call_must_ok(fcntl, "F_SETFL", socketfd, F_SETFL, flags);
-    call_must_ok(setsockopt, "setsockopt(REUSEADDR)", socketfd, SOL_SOCKET, SO_REUSEADDR, &ENABLE, sizeof(ENABLE));
+    int socketfd = create_socket(false);
+    sockaddr_in addr = create_addr("127.0.0.1", 6502);
     call_must_ok(bind, "bind", socketfd, (sockaddr*)&addr, sizeof(addr));
 
     c10k::EventLoop el(1024, ev_logger);
@@ -146,8 +138,8 @@ TEST_CASE("Eventloop should work for socket", "[event_loop]")
     cur_sleep_for(50ms);
 
     SECTION("Should work for single client") {
-        int clientsock = call_must_ok(socket, "Create client socket", AF_INET, SOCK_STREAM, 0);
-        call_must_ok(setsockopt, "setsockopt(REUSEADDR)", clientsock, SOL_SOCKET, SO_REUSEADDR, &ENABLE, sizeof(ENABLE));
+
+        int clientsock = create_socket(true);
         call_must_ok(connect, "connect", clientsock, (sockaddr*)&addr, sizeof(addr));
 
         char local_buf[sizeof(server_buffer)];
