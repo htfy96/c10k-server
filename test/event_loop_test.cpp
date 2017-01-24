@@ -18,10 +18,6 @@ auto ev_logger = spdlog::stdout_color_mt("Eventloop");
 auto debug_logger = spdlog::stdout_color_mt("debug");
 using namespace std::chrono_literals;
 
-inline void cur_sleep_for(std::chrono::milliseconds ms)
-{
-    std::this_thread::sleep_for(ms);
-}
 
 TEST_CASE("Eventloop should start and stop", "[event_loop]")
 {
