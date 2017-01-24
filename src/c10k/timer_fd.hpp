@@ -5,7 +5,6 @@
 #ifndef C10K_SERVER_TIMER_FD_HPP
 #define C10K_SERVER_TIMER_FD_HPP
 
-#endif //C10K_SERVER_TIMER_FD_HPP
 
 #include <sys/timerfd.h>
 #include <unistd.h>
@@ -36,3 +35,4 @@ public:
         ::close(fd);
     }
 };
+#endif //C10K_SERVER_TIMER_FD_HPP

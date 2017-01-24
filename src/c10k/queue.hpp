@@ -5,7 +5,6 @@
 #ifndef C10K_SERVER_BLOCKING_QUEUE_HPP
 #define C10K_SERVER_BLOCKING_QUEUE_HPP
 
-#endif //C10K_SERVER_BLOCKING_QUEUE_HPP
 
 #include <queue>
 #include <condition_variable>
@@ -116,3 +115,4 @@ namespace c10k
         };
     }
 }
+#endif //C10K_SERVER_BLOCKING_QUEUE_HPP

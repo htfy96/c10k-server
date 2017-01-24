@@ -5,7 +5,6 @@
 #ifndef C10K_SERVER_UTILS_HPP
 #define C10K_SERVER_UTILS_HPP
 
-#endif //C10K_SERVER_UTILS_HPP
 
 #include <cstdio>
 #include <cerrno>
@@ -80,3 +79,4 @@ namespace c10k
 
 }
 
+#endif //C10K_SERVER_UTILS_HPP

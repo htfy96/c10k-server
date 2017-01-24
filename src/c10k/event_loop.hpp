@@ -5,7 +5,6 @@
 #ifndef C10K_SERVER_EVENT_LOOP_HPP
 #define C10K_SERVER_EVENT_LOOP_HPP
 
-#endif //C10K_SERVER_EVENT_LOOP_HPP
 
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -193,3 +192,4 @@ namespace c10k
 
     };
 }
+#endif //C10K_SERVER_EVENT_LOOP_HPP
