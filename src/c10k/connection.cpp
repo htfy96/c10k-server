@@ -15,8 +15,9 @@ namespace c10k
         using namespace std::placeholders;
         if (!registered.exchange(true)) {
             logger->trace("Event registered");
-            el.add_event(fd, EventType {EventCategory::POLLIN, EventCategory::POLLOUT, EventCategory::POLLRDHUP},
+            el.add_event(fd, EventType {EventCategory::POLLRDHUP},
                          std::bind(&Connection::event_handler, this, _1));
+            event_listen.set(EventCategory::POLLRDHUP);
         }
     }
 
@@ -25,6 +26,30 @@ namespace c10k
         if (registered.exchange(false)) {
             logger->trace("Event removed");
             el.remove_event(fd);
+        }
+    }
+
+    void Connection::enable_event(EventCategory ec)
+    {
+        using namespace std::placeholders;
+        std::lock_guard<std::recursive_mutex> lk(mutex);
+        if (!event_listen.is(ec) && !is_closed())
+        {
+            event_listen.set(ec);
+            logger->trace("Enable event listen: cur={}", event_listen);
+            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, this, _1));
+        }
+    }
+
+    void Connection::disable_event(EventCategory ec)
+    {
+        using namespace std::placeholders;
+        std::lock_guard<std::recursive_mutex> lk(mutex);
+        if (event_listen.is(ec) && !is_closed())
+        {
+            event_listen.unset(ec);
+            logger->trace("Disable event listen: cur={}", event_listen);
+            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, this, _1));
         }
     }
 
@@ -58,6 +83,8 @@ namespace c10k
                 break;
             }
         }
+        if (r_buffer.empty())
+            disable_event(EventCategory::POLLIN);
     }
 
     void Connection::handle_write()
@@ -91,13 +118,15 @@ namespace c10k
                 break; // wait for next time
             }
         }
+        if (w_buffer.empty())
+            disable_event(EventCategory::POLLOUT);
     }
 
     void Connection::event_handler(const Event &e)
     {
         logger->debug("Handling event {}", e);
         if (e.event_type.is_err())
-            remove_event();
+            close();
         else
         {
             std::lock_guard<std::recursive_mutex> lk(mutex);
@@ -106,14 +135,10 @@ namespace c10k
                     handle_read();
                 if (e.event_type.is(EventCategory::POLLOUT))
                     handle_write();
-                if (w_buffer.empty() && r_buffer.empty()) {
-                    remove_event();
-                    logger->debug("No remaining request, removing event...");
-                }
             } catch(std::exception &e)
             {
                 logger->warn("Socket closed when processing event, closing connection:", e.what());
-                remove_event();
+                close();
             }
         }
     }

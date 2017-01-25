@@ -39,7 +39,7 @@ public:
         conn.read_async_then(std::back_inserter(v), 2, [&](char *st, char *ed) {
             int len = (unsigned)st[0] * 128 + (unsigned)st[1];
             conn.read_async_then(std::back_inserter(v), len, [&](char *st, char *ed) {
-                throw std::runtime_error("Read finished");
+                conn.close();
             });
         });
 
@@ -77,7 +77,7 @@ public:
             logger->info("Write from v.data+2 {} to v.data()+v.size() {}", (void*)v.data(), (void*)(v.data() + v.size()));
             conn.write_async_then(v.data() + 2, v.data() + v.size(), [&]() {
                 logger->info("data written");
-                throw std::runtime_error("Write finished");
+                conn.close();
             });
         });
         el.loop();

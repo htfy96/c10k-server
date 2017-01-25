@@ -78,6 +78,9 @@ namespace c10k
         std::queue<detail::ConnRReq> r_buffer;
         std::recursive_mutex mutex;
         std::atomic_bool registered;
+        EventType event_listen;
+
+        std::atomic_bool closed {false};
 
         std::shared_ptr<spdlog::logger> logger;
         using LoggerT = decltype(logger);
@@ -93,24 +96,43 @@ namespace c10k
             return fd;
         }
 
+        bool is_closed() const
+        {
+            return closed.load();
+        }
+
+        void close()
+        {
+            if (!closed.exchange(true))
+            {
+                remove_event();
+                logger->debug("Closing fd={}", fd);
+                ::close(fd);
+            }
+        }
+
         template<typename InputIt>
         void write_async(InputIt st, InputIt ed)
         {
+            if (is_closed())
+                throw std::runtime_error("Write when socket is closed");
             logger->debug("Write_async called");
             detail::ConnWReq wReq {st, ed};
             std::lock_guard<std::recursive_mutex> lk(mutex);
             w_buffer.push(std::move(wReq));
-            register_event();
+            enable_event(EventCategory::POLLOUT);
         }
 
         template<typename InputIt>
         void write_async_then(InputIt st, InputIt ed, detail::ConnWReq::CallbackT callback)
         {
+            if (is_closed())
+                throw std::runtime_error("Write when socket is closed");
             logger->debug("write_async_then called");
             detail::ConnWReq wReq {st, ed, callback};
             std::lock_guard<std::recursive_mutex> lk(mutex);
             w_buffer.push(std::move(wReq));
-            register_event();
+            enable_event(EventCategory::POLLOUT);
         }
 
         // read_async: read data then write it into OIterator iit
@@ -118,18 +140,22 @@ namespace c10k
         template<typename InsertItT>
         void read_async(InsertItT iit, int len)
         {
+            if (is_closed())
+                throw std::runtime_error("Read when socket is closed");
             logger->debug("read_async called with len={}", len);
             detail::ConnRReq rReq {len, [iit] (char *st, char *ed) {
                 std::move(st, ed, iit);
             }};
             std::lock_guard<std::recursive_mutex> lk(mutex);
             r_buffer.push(rReq);
-            register_event();
+            enable_event(EventCategory::POLLIN);
         }
 
         template<typename InsertItT>
         void read_async_then(InsertItT iit, int len, detail::ConnRReq::CallbackT callback)
         {
+            if (is_closed())
+                throw std::runtime_error("Read when socket is closed");
             logger->debug("read_async_then called with len={}", len);
             detail::ConnRReq rReq {len, [iit, callback] (char *st, char *ed) {
                 std::move(st, ed, iit);
@@ -137,13 +163,17 @@ namespace c10k
             }};
             std::lock_guard<std::recursive_mutex> lk(mutex);
             r_buffer.push(rReq);
-            register_event();
+            enable_event(EventCategory::POLLIN);
         }
 
+        // only register RDHUP
         void register_event();
 
         void remove_event();
     private:
+        void enable_event(EventCategory ec);
+
+        void disable_event(EventCategory ec);
 
         void handle_read();
 
