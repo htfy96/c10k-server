@@ -142,7 +142,7 @@ namespace c10k
         std::shared_ptr<spdlog::logger> logger;
 
         std::unordered_map<int, std::unique_ptr<detail::PollData>> fd_to_poll_data;
-        std::mutex map_mutex;
+        mutable std::mutex map_mutex;
         using LoggerT = decltype(logger);
 
         // workaround before inline var :)
@@ -186,6 +186,12 @@ namespace c10k
         void disable_loop()
         {
             loop_enabled_ = false;
+        }
+
+        std::size_t fd_num() const
+        {
+            std::lock_guard<std::mutex> lk(map_mutex);
+            return fd_to_poll_data.size();
         }
 
         ~EventLoop();
