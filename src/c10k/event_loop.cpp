@@ -117,11 +117,11 @@ namespace c10k
             throw std::runtime_error("No old event registered with this fd when modifying");
         }
 
-        auto pnewPollData = std::make_unique<PollData>(fd, std::move(handler));
-        new_event.data.ptr = (void*)pnewPollData.get();
+        it->second->fd = fd;
+        it->second->handler = std::move(handler);
+        new_event.data.ptr = (void*)it->second.get();
 
         call_must_ok(epoll_ctl, "epoll_ctl MODIFY", epollfd, EPOLL_CTL_MOD, fd, &new_event);
-        it->second = std::move(pnewPollData);
     }
 
     EventLoop::~EventLoop()
