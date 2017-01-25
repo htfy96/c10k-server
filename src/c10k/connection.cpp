@@ -66,6 +66,7 @@ namespace c10k
                 int read_len = std::min(1024, req.requested_len - (int)req.buf.size());
                 req.buf.resize(req.buf.size() + read_len);
                 int read_result = ::read(fd, &*req.buf.end() - read_len, read_len);
+                req.buf.resize(read_result > 0 ? req.buf.size() - (read_len - read_result) : req.buf.size() - read_len);
                 logger->trace("Performing read {} bytes, result={}", read_len, read_result);
                 if (read_result < 0)
                     if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -77,7 +78,7 @@ namespace c10k
             if (req.buf.size() == req.requested_len) // read OK
             {
                 logger->trace("Req read OK, executing callback");
-                req.exec_callback(&*req.buf.begin(), &*req.buf.end());
+                req.exec_callback(shared_from_this(), &*req.buf.begin(), &*req.buf.end());
                 r_buffer.pop();
             } else // wait for next time
             {
@@ -112,7 +113,10 @@ namespace c10k
             if (req.offset == req.buf.size()) // write OK
             {
                 logger->trace("Req write OK, executing callback");
-                req.exec_callback();
+                auto this_ptr = shared_from_this();
+                logger->trace("Current ptr use_count={}", this_ptr.use_count());
+                req.exec_callback(shared_from_this());
+                logger->trace("Current ptr after use use_count={}", this_ptr.use_count());
                 w_buffer.pop();
             } else
             {
@@ -125,19 +129,18 @@ namespace c10k
 
     void Connection::event_handler(const Event &e)
     {
+        auto self = shared_from_this();
         logger->debug("Handling event {}", e);
-        if (e.event_type.is_err())
-            close();
-        else
-        {
-            std::lock_guard<std::recursive_mutex> lk(mutex);
+        std::lock_guard<std::recursive_mutex> lk(mutex);
+        if (!is_closed()) {
             try {
                 if (e.event_type.is(EventCategory::POLLIN))
                     handle_read();
                 if (e.event_type.is(EventCategory::POLLOUT))
                     handle_write();
-            } catch(std::exception &e)
-            {
+                if (e.event_type.is_err())
+                    close();
+            } catch (std::exception &e) {
                 logger->warn("Socket closed when processing event, closing connection:", e.what());
                 close();
             }

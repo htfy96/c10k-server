@@ -21,17 +21,20 @@
 
 namespace c10k
 {
+    class Connection;
+    using ConnectionPtr = std::shared_ptr<Connection>;
+
     namespace detail
     {
         struct ConnWReq
         {
-            std::function<void()> callback;
+            std::function<void(const c10k::ConnectionPtr&)> callback;
             using CallbackT = decltype(callback);
 
-            void exec_callback()
+            void exec_callback(const c10k::ConnectionPtr& pconn)
             {
                 if (callback)
-                    callback();
+                    callback(pconn);
             }
             const std::vector<char> buf;
             int offset = 0;
@@ -51,7 +54,7 @@ namespace c10k
         struct ConnRReq
         {
             std::vector<char> buf;
-            std::function<void(char *, char *)> callback;
+            std::function<void(const ConnectionPtr&, char *, char *)> callback;
             using CallbackT = decltype(callback);
 
             const int requested_len;
@@ -62,10 +65,10 @@ namespace c10k
                 buf.reserve(requested_len);
             }
 
-            void exec_callback(char *st, char *ed)
+            void exec_callback(const ConnectionPtr &pconn, char *st, char *ed)
             {
                 if (callback)
-                    callback(st, ed);
+                    callback(pconn, st, ed);
             }
         };
     }
@@ -157,7 +160,7 @@ namespace c10k
             if (is_closed())
                 throw std::runtime_error("Read when socket is closed");
             logger->debug("read_async called with len={}", len);
-            detail::ConnRReq rReq {len, [iit] (char *st, char *ed) {
+            detail::ConnRReq rReq {len, [iit] (const ConnectionPtr &pconn, char *st, char *ed) {
                 std::move(st, ed, iit);
             }};
             std::lock_guard<std::recursive_mutex> lk(mutex);
@@ -171,9 +174,9 @@ namespace c10k
             if (is_closed())
                 throw std::runtime_error("Read when socket is closed");
             logger->debug("read_async_then called with len={}", len);
-            detail::ConnRReq rReq {len, [iit, callback] (char *st, char *ed) {
+            detail::ConnRReq rReq {len, [iit, callback] (const ConnectionPtr& pconn, char *st, char *ed) {
                 std::move(st, ed, iit);
-                callback(st, ed);
+                callback(pconn, st, ed);
             }};
             std::lock_guard<std::recursive_mutex> lk(mutex);
             r_buffer.push(rReq);
@@ -199,5 +202,6 @@ namespace c10k
         friend class ConnectionTester2;
 
     };
+
 }
 #endif //C10K_SERVER_CONNECTION_HPP

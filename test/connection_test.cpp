@@ -36,9 +36,9 @@ public:
         auto conn = Connection::create(acc_fd, el, logger, false);
         conn->register_event();
 
-        conn->read_async_then(std::back_inserter(v), 2, [&](char *st, char *ed) {
+        conn->read_async_then(std::back_inserter(v), 2, [&](const ConnectionPtr &conn, char *st, char *ed) {
             int len = (unsigned)st[0] * 128 + (unsigned)st[1];
-            conn->read_async_then(std::back_inserter(v), len, [&](char *st, char *ed) {
+            conn->read_async_then(std::back_inserter(v), len, [&](const ConnectionPtr &conn, char *st, char *ed) {
                 conn->close();
             });
         });
@@ -73,9 +73,9 @@ public:
         auto conn = Connection::create(sock, el, logger, false);
         conn->register_event();
 
-        conn->write_async_then(v.begin(), v.begin() + 2, [&]() {
+        conn->write_async_then(v.begin(), v.begin() + 2, [&](const ConnectionPtr &conn) {
             logger->info("Write from v.data+2 {} to v.data()+v.size() {}", (void*)v.data(), (void*)(v.data() + v.size()));
-            conn->write_async_then(v.data() + 2, v.data() + v.size(), [&]() {
+            conn->write_async_then(v.data() + 2, v.data() + v.size(), [&](const ConnectionPtr &conn) {
                 logger->info("data written");
                 conn->close();
             });
