@@ -33,13 +33,13 @@ public:
         for (;acc_fd < 0;) {
             acc_fd = ::accept(sock, nullptr, nullptr);
         }
-        Connection conn(acc_fd, el, logger, false);
-        conn.register_event();
+        auto conn = Connection::create(acc_fd, el, logger, false);
+        conn->register_event();
 
-        conn.read_async_then(std::back_inserter(v), 2, [&](char *st, char *ed) {
+        conn->read_async_then(std::back_inserter(v), 2, [&](char *st, char *ed) {
             int len = (unsigned)st[0] * 128 + (unsigned)st[1];
-            conn.read_async_then(std::back_inserter(v), len, [&](char *st, char *ed) {
-                conn.close();
+            conn->read_async_then(std::back_inserter(v), len, [&](char *st, char *ed) {
+                conn->close();
             });
         });
 
@@ -70,14 +70,14 @@ public:
 
         call_must_ok(connect, "connect", sock, (sockaddr*)&addr, sizeof(addr));
         make_socket_nonblocking(sock);
-        Connection conn(sock, el, logger, false);
-        conn.register_event();
+        auto conn = Connection::create(sock, el, logger, false);
+        conn->register_event();
 
-        conn.write_async_then(v.begin(), v.begin() + 2, [&]() {
+        conn->write_async_then(v.begin(), v.begin() + 2, [&]() {
             logger->info("Write from v.data+2 {} to v.data()+v.size() {}", (void*)v.data(), (void*)(v.data() + v.size()));
-            conn.write_async_then(v.data() + 2, v.data() + v.size(), [&]() {
+            conn->write_async_then(v.data() + 2, v.data() + v.size(), [&]() {
                 logger->info("data written");
-                conn.close();
+                conn->close();
             });
         });
         el.loop();
@@ -105,7 +105,7 @@ TEST_CASE("Connection should handle packet corrected", "[connection]")
     });
     client_t.detach();
 
-    cur_sleep_for(200ms);
+    cur_sleep_for(500ms);
     {
         REQUIRE(server.v.size() == client.v.size());
         for (int i = 0; i < client.v.size(); ++i)

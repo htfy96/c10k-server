@@ -16,13 +16,14 @@ namespace c10k
         if (!registered.exchange(true)) {
             logger->trace("Event registered");
             el.add_event(fd, EventType {EventCategory::POLLRDHUP},
-                         std::bind(&Connection::event_handler, this, _1));
+                         std::bind(&Connection::event_handler, shared_from_this(), _1));
             event_listen.set(EventCategory::POLLRDHUP);
         }
     }
 
     void Connection::remove_event()
     {
+        std::lock_guard<std::recursive_mutex> lk(mutex);
         if (registered.exchange(false)) {
             logger->trace("Event removed");
             el.remove_event(fd);
@@ -37,7 +38,7 @@ namespace c10k
         {
             event_listen.set(ec);
             logger->trace("Enable event listen: cur={}", event_listen);
-            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, this, _1));
+            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, shared_from_this(), _1));
         }
     }
 
@@ -49,7 +50,7 @@ namespace c10k
         {
             event_listen.unset(ec);
             logger->trace("Disable event listen: cur={}", event_listen);
-            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, this, _1));
+            el.modify_event(fd, event_listen, std::bind(&Connection::event_handler, shared_from_this(), _1));
         }
     }
 
