@@ -1,13 +1,18 @@
+sudo: required
+dist: trusty
+
 language: cpp
 
-before_script:
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_C_COMPILER="${X_CC}" -DCMAKE_CXX_COMPILER="${X_CXX}" -Dc10k-build_tests=ON ..
+services:
+    - docker
+
+before_install:
+    - docker pull htfy96/build-image
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c "cd /data; mkdir -p build && cd build && rm -rf *; cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
 
 script:
-    - make VERBOSE=1 -j4
-    - ctest --output-on-failure && valgrind --leak-check=full ctest --output-on-failure
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c 'cd /data/build; make -j4; make -j4'
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c 'cd /data/build; ctest --output-on-failure && valgrind ctest --output-on-failure'
 
 matrix:
   include:
@@ -35,18 +40,3 @@ matrix:
           - X_CC=clang-3.8
           - X_CXX=clang++-3.8
           - BUILD_TYPE=Release
-
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports
-        packages:
-            - clang-3.8
-            - g++-4.9
-            - g++-5
-            - cmake
-            - cmake-data
-            - build-essential
-            - valgrind
