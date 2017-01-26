@@ -23,7 +23,7 @@ inline void make_socket_nonblocking(int socketfd)
 inline int create_socket(bool blocking = true)
 {
     using namespace c10k::detail;
-    int socketfd = call_must_ok(socket, "Create socket", AF_INET, SOCK_STREAM, 0);
+    int socketfd = call_must_ok(::socket, "Create socket", AF_INET, SOCK_STREAM, 0);
 
     static const int ENABLE = 1;
     if (!blocking) {
@@ -38,7 +38,6 @@ inline sockaddr_in create_addr(const char *in_addr, int port)
 {
     using namespace c10k::detail;
     using namespace c10k;
-    int socketfd = call_must_ok(socket, "Create socket", AF_INET, SOCK_STREAM, 0);
     sockaddr_in addr;
     addr.sin_family = AF_INET;
     call_must_ok(inet_aton, "inet_aton", in_addr, &addr.sin_addr);

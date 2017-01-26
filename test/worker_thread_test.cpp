@@ -106,13 +106,14 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
     using namespace std::chrono_literals;
     using namespace c10k;
     using detail::call_must_ok;
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
     auto server_logger = spdlog::stdout_color_mt("Server"), client_logger = spdlog::stdout_color_mt("Client"),
-        debug_logger = spdlog::stdout_color_mt("DEBUD");
+        debug_logger = spdlog::stdout_color_mt("DEBUG");
     detail::WorkerThread<ServerHandler> worker(400, server_logger);
 
     std::thread server_t {std::ref(worker)};
-    static constexpr int TEST_CNT = 600;
+    server_t.detach();
+    static constexpr int TEST_CNT = 500;
 
     std::thread main_t {[&]() {
         int main_fd = create_socket();
@@ -130,11 +131,12 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
     }};
     main_t.detach();
     debug_logger->info("Main thread detached");
-    cur_sleep_for(1s);
+    cur_sleep_for(3s);
     debug_logger->info("Start to create clientWorker");
 
     detail::WorkerThread<ClientHandler> clientWorker(400, client_logger);
     std::thread client_t {std::ref(clientWorker)};
+    client_t.detach();
     debug_logger->info("ClientWorker created");
 
     for (int i=0; i<TEST_CNT; ++i)
@@ -147,8 +149,7 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
         clientWorker.add_new_connection(cli_fd);
     }
 
-    server_t.detach(); client_t.detach();
-    cur_sleep_for(5s);
+    cur_sleep_for(25s);
     worker.stop(); clientWorker.stop();
     cur_sleep_for(3s);
     INFO(ss.str());

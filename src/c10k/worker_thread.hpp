@@ -44,7 +44,13 @@ namespace c10k
 
             void operator() ()
             {
-                loop.loop();
+                try {
+                    loop.loop();
+                } catch(std::exception &e)
+                {
+                    logger->critical("Error occured! e={}", e.what());
+                    throw;
+                }
             }
 
             void add_new_connection(int fd)
