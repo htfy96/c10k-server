@@ -149,9 +149,8 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
         clientWorker.add_new_connection(cli_fd);
     }
 
-
-    cur_sleep_for(2s);
     server_t.detach(); client_t.detach();
+    cur_sleep_for(2s);
     worker.stop(); clientWorker.stop();
     cur_sleep_for(1s);
     INFO(ss.str());
