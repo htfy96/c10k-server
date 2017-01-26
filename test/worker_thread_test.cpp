@@ -131,7 +131,9 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
         call_must_ok(::close, "close", main_fd);
     }};
     main_t.detach();
+    INFO("Main thread detached");
     cur_sleep_for(1s);
+    INFO("Start to create clientWorker");
 
     detail::WorkerThread<ClientHandler> clientWorker(400, client_logger);
     std::thread client_t {std::ref(clientWorker)};
@@ -148,7 +150,7 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
     }
 
 
-    cur_sleep_for(1s);
+    cur_sleep_for(2s);
     server_t.detach(); client_t.detach();
     worker.stop(); clientWorker.stop();
     cur_sleep_for(1s);
