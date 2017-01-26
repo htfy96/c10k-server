@@ -12,7 +12,7 @@ before_install:
 
 script:
     - docker run -ti -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build; make -j4; make -j4'
-    - docker run -ti -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build; ctest --output-on-failure; valgrind ctest --output-on-failure'
+    - docker run -ti -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build; ctest --output-on-failure; valgrind --track-fds=yes ctest --output-on-failure'
 
 matrix:
   include:
