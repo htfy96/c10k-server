@@ -107,20 +107,18 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
     using namespace c10k;
     using detail::call_must_ok;
     spdlog::set_level(spdlog::level::debug);
-    auto server_logger = spdlog::stdout_color_mt("Server"), client_logger = spdlog::stdout_color_mt("Client");
+    auto server_logger = spdlog::stdout_color_mt("Server"), client_logger = spdlog::stdout_color_mt("Client"),
+        debug_logger = spdlog::stdout_color_mt("DEBUD");
     detail::WorkerThread<ServerHandler> worker(400, server_logger);
 
     std::thread server_t {std::ref(worker)};
     static constexpr int TEST_CNT = 600;
 
     std::thread main_t {[&]() {
-        INFO("Main thread entered");
         int main_fd = create_socket();
-        INFO("Main thread created");
         sockaddr_in addr = create_addr("127.0.0.1", 6503);
         call_must_ok(::bind, "Bind", main_fd, (sockaddr*)&addr, sizeof(addr));
         call_must_ok(::listen, "Listen", main_fd, 1024);
-        INFO("Main thread binded");
         for (int i=0; i<TEST_CNT; ++i)
         {
             int new_sock = call_must_ok(accept, "Accept", main_fd, nullptr, nullptr);
@@ -131,28 +129,28 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
         call_must_ok(::close, "close", main_fd);
     }};
     main_t.detach();
-    INFO("Main thread detached");
+    debug_logger->info("Main thread detached");
     cur_sleep_for(1s);
-    INFO("Start to create clientWorker");
+    debug_logger->info("Start to create clientWorker");
 
     detail::WorkerThread<ClientHandler> clientWorker(400, client_logger);
     std::thread client_t {std::ref(clientWorker)};
-    INFO("ClientWorker created");
+    debug_logger->info("ClientWorker created");
 
     for (int i=0; i<TEST_CNT; ++i)
     {
         int cli_fd = create_socket(true);
         sockaddr_in addr = create_addr("127.0.0.1", 6503);
         call_must_ok(::connect, "Connect", cli_fd, (sockaddr*)&addr, sizeof(addr));
-        INFO("New fd added" << i);
+        debug_logger->info("New fd added {}: {}/{}", cli_fd, i, TEST_CNT);
         make_socket_nonblocking(cli_fd);
         clientWorker.add_new_connection(cli_fd);
     }
 
     server_t.detach(); client_t.detach();
-    cur_sleep_for(2s);
+    cur_sleep_for(5s);
     worker.stop(); clientWorker.stop();
-    cur_sleep_for(1s);
+    cur_sleep_for(3s);
     INFO(ss.str());
     REQUIRE(check_ok);
 }
