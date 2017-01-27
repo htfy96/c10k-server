@@ -12,6 +12,7 @@ namespace c10k
 {
     void Connection::register_event()
     {
+        std::lock_guard<std::recursive_mutex> lk(mutex);
         using namespace std::placeholders;
         if (!registered.exchange(true)) {
             logger->trace("Event registered");

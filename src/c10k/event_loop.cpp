@@ -54,7 +54,11 @@ namespace c10k
     {
         std::for_each(st, ed, [&](const epoll_event &ev) {
             detail::PollData *data = static_cast<detail::PollData *>(ev.data.ptr);
-            Event e {this, data->fd, EventType(ev.events) };
+            Event e;
+            {
+                std::lock_guard<std::mutex> lk(map_mutex);
+                e = Event{this, data->fd, EventType(ev.events)};
+            }
             logger->trace("Distributed to handle event {}", e);
             // TODO: Check EPOLLERR here?
             data->handler(e);
