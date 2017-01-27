@@ -26,7 +26,11 @@ include_directories(${spdlog_SOURCE_DIR}/include)
 ##################################
 include_directories(src)
 
-set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp src/c10k/event_loop.hpp src/c10k/event_loop.cpp src/c10k/timer_fd.hpp src/c10k/queue.hpp src/c10k/connection.hpp src/c10k/connection.cpp src/c10k/worker_thread.hpp)
+set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp
+        src/c10k/event_loop.hpp src/c10k/event_loop.cpp
+        src/c10k/timer_fd.hpp src/c10k/queue.hpp
+        src/c10k/connection.hpp src/c10k/connection.cpp
+        src/c10k/worker_thread.hpp src/c10k/handler.hpp)
 add_library(c10k STATIC ${c10k_SOURCE})
 target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 

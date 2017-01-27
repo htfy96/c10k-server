@@ -5,6 +5,7 @@
 #include <catch.hpp>
 #include <c10k/worker_thread.hpp>
 #include <c10k/utils.hpp>
+#include <c10k/handler.hpp>
 #include "test_common.hpp"
 #include <cstdint>
 #include <sstream>
@@ -18,30 +19,23 @@ struct ServerHandler: public c10k::Handler
     {
         using namespace std::placeholders;
         using std::static_pointer_cast;
-        conn->read_async_then((char*)&len, sizeof(len),
-                              std::bind(&ServerHandler::read_buffer,
-                                        static_pointer_cast<ServerHandler>(shared_from_this()), _1, _2, _3));
+        C10K_READ_ASYNC_THEN_MEMFUN(conn, (char*)&len, sizeof(len), read_buffer);
     }
 
     void read_buffer(const c10k::ConnectionPtr &conn, char *st, char *ed)
     {
         using namespace std::placeholders;
         buffer.reserve(len);
-        conn->read_async_then(std::back_inserter(buffer), len,
-                              std::bind(&ServerHandler::write_back,
-                                        std::static_pointer_cast<ServerHandler>(shared_from_this()), _1, _2, _3));
+        C10K_READ_ASYNC_THEN_MEMFUN(conn, std::back_inserter(buffer), len, write_back);
     }
 
-    void write_back(const c10k::ConnectionPtr &conn, char *st, char *ed)
-    {
+    void write_back(const c10k::ConnectionPtr &conn, char *st, char *ed) {
         using namespace std::placeholders;
         std::vector<char> wrt_buffer;
         wrt_buffer.reserve(2 + len);
-        std::copy_n((char *)&len, 2, std::back_inserter(wrt_buffer));
+        std::copy_n((char *) &len, 2, std::back_inserter(wrt_buffer));
         std::copy(buffer.begin(), buffer.end(), std::back_inserter(wrt_buffer));
-        conn->write_async_then(wrt_buffer.begin(), wrt_buffer.end(),
-                               std::bind(&ServerHandler::close_connection,
-                                         std::static_pointer_cast<ServerHandler>(shared_from_this()), _1));
+        C10K_WRITE_ASYNC_THEN_MEMFUN(conn, wrt_buffer.begin(), wrt_buffer.end(), close_connection);
     }
 
     void close_connection(const c10k::ConnectionPtr &conn)

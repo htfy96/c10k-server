@@ -7,6 +7,7 @@
 
 #include "event_loop.hpp"
 #include "connection.hpp"
+#include "handler.hpp"
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <type_traits>
@@ -14,13 +15,6 @@
 
 namespace c10k
 {
-    // interface for handler
-    struct Handler: std::enable_shared_from_this<Handler>
-    {
-        virtual void handle_init(const ConnectionPtr &conn) = 0;
-        virtual ~Handler() {}
-    };
-
     namespace detail
     {
         // WorkerThread
