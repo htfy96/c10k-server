@@ -57,6 +57,8 @@ namespace c10k
     void Connection::handle_read()
     {
         logger->trace("Handling read, there are {} items in r_buffer", r_buffer.size());
+        if (is_closed())
+            throw std::runtime_error("Read when socket is closed");
         while (!r_buffer.empty()) // can read
         {
             detail::ConnRReq &req = r_buffer.front();
@@ -92,6 +94,8 @@ namespace c10k
     void Connection::handle_write()
     {
         logger->trace("Handling write, there are {} items in w_buffer", w_buffer.size());
+        if (is_closed())
+            throw std::runtime_error("Write when socket is closed");
         while (!w_buffer.empty()) // can write
         {
             detail::ConnWReq &req = w_buffer.front();
