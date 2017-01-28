@@ -13,10 +13,10 @@ before_install:
 
 script:
     - docker run -ti -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build; make -j4'
-    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;logbt --setup; logbt -- ctest --output-on-failure'
-    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;logbt --setup; logbt -- valgrind --track-fds=yes ctest --output-on-failure'
-    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;logbt --setup; logbt -- valgrind --tool=drd ctest --output-on-failure'
-    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;logbt --setup; logbt -- valgrind --tool=helgrind ctest --output-on-failure'
+    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;echo '/tmp/logbt-coredumps/core.%p.%E' > /proc/sys/kernel/core_pattern; logbt -- ctest --output-on-failure'
+    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;echo '/tmp/logbt-coredumps/core.%p.%E' > /proc/sys/kernel/core_pattern; logbt -- valgrind --track-fds=yes ctest --output-on-failure'
+    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;echo '/tmp/logbt-coredumps/core.%p.%E' > /proc/sys/kernel/core_pattern; logbt -- valgrind --tool=drd ctest --output-on-failure'
+    - docker run -ti --privileged -v $(pwd):/data htfy96/build-image:lite bash -c 'cd /data/build;echo '/tmp/logbt-coredumps/core.%p.%E' > /proc/sys/kernel/core_pattern; logbt -- valgrind --tool=helgrind ctest --output-on-failure'
 
 matrix:
   include:
