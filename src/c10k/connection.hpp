@@ -122,9 +122,10 @@ namespace c10k
         {
             if (!closed.exchange(true))
             {
+                using detail::call_must_ok;
                 remove_event();
                 logger->debug("Closing fd={}", fd);
-                ::close(fd);
+                call_must_ok(::close, "Close", fd);
             }
         }
 
