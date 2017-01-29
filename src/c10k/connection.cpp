@@ -146,7 +146,7 @@ namespace c10k
                     handle_write();
                 if (e.event_type.is_err())
                     close();
-            } catch (std::exception &e) {
+            } catch (const std::exception &e) {
                 logger->warn("Socket closed when processing event, closing connection:", e.what());
                 close();
             }

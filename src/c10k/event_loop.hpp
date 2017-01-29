@@ -152,6 +152,8 @@ namespace c10k
         }
 
         void handle_events(epoll_event *st, epoll_event *ed);
+        static void NullEventHandler(const Event &)
+        {}
 
     public:
         EventLoop(int max_event, const LoggerT &logger);

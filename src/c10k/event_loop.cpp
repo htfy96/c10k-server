@@ -37,7 +37,7 @@ namespace c10k
 
         auto fd_guard = make_scope_guard(
                 [&]() {
-                    add_event(fd.getfd(), EventType(EventCategory::POLLIN), NullEventHandler);
+                    add_event(fd.getfd(), EventType(EventCategory::POLLIN), EventLoop::NullEventHandler);
                 },
                 [&]() {
                     remove_event(fd.getfd());
