@@ -7,7 +7,6 @@
 #include <system_error>
 #include <stdexcept>
 
-//TODO: monitor POLLIN/POLLOUT individually
 namespace c10k
 {
     void Connection::register_event()
@@ -72,10 +71,12 @@ namespace c10k
                 req.buf.resize(read_result > 0 ? req.buf.size() - (read_len - read_result) : req.buf.size() - read_len);
                 logger->trace("Performing read {} bytes, result={}", read_len, read_result);
                 if (read_result <= 0)
-                    if (errno != EAGAIN && errno != EWOULDBLOCK || read_result == 0)
+                    if ((errno != EAGAIN && errno != EWOULDBLOCK) || read_result == 0)
                         throw std::system_error(errno, std::system_category());
                     else
+                    {
                         break;
+                    }
             }
 
             if (req.buf.size() == req.requested_len) // read OK
