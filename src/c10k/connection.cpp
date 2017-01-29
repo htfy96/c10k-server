@@ -71,9 +71,9 @@ namespace c10k
                 int read_result = ::read(fd, &*req.buf.end() - read_len, read_len);
                 req.buf.resize(read_result > 0 ? req.buf.size() - (read_len - read_result) : req.buf.size() - read_len);
                 logger->trace("Performing read {} bytes, result={}", read_len, read_result);
-                if (read_result < 0)
-                    if (errno != EAGAIN && errno != EWOULDBLOCK)
-                        throw std::system_error(read_result, std::system_category());
+                if (read_result <= 0)
+                    if (errno != EAGAIN && errno != EWOULDBLOCK || read_result == 0)
+                        throw std::system_error(errno, std::system_category());
                     else
                         break;
             }
@@ -110,7 +110,7 @@ namespace c10k
                 logger->trace("Write result={}", write_result);
                 if (write_result < 0)
                     if (errno != EAGAIN && errno != EWOULDBLOCK)
-                        throw std::system_error(write_result, std::system_category());
+                        throw std::system_error(errno, std::system_category());
                     else
                         break;
                 req.offset += write_result;
