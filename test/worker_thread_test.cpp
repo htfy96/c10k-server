@@ -100,7 +100,7 @@ TEST_CASE("multiple WorkerThread test", "[worker_thread]")
     using namespace std::chrono_literals;
     using namespace c10k;
     using detail::call_must_ok;
-    spdlog::set_level(spdlog::level::info);
+    spdlog::set_level(spdlog::level::debug);
     auto server_logger = spdlog::stdout_color_mt("Server"), client_logger = spdlog::stdout_color_mt("Client"),
         debug_logger = spdlog::stdout_color_mt("DEBUG");
     detail::WorkerThread<ServerHandler> worker(400, server_logger);
