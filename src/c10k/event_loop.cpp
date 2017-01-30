@@ -46,7 +46,14 @@ namespace c10k
         for (;loop_enabled_;)
         {
             int ret = epoll_wait(epollfd, events, epoll_event_buf_size(), -1);
-            handle_events(events, events + ret);
+            if (ret >= 0)
+                handle_events(events, events + ret);
+            else
+            {
+                std::error_code ec(errno, std::system_category());
+                logger->critical("Error in epoll_wait: {}", ec.message());
+                throw std::system_error(ec);
+            }
         }
     }
 
