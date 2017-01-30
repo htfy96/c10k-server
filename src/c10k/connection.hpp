@@ -88,10 +88,10 @@ namespace c10k
         std::shared_ptr<spdlog::logger> logger;
         using LoggerT = decltype(logger);
 
-
+        struct HiddenTag {};
     public:
         // NOTE: Don't call this directly! Use Connection::create
-        Connection(int fd, EventLoop &el, const LoggerT &logger, bool registered = true):
+        Connection(HiddenTag, int fd, EventLoop &el, const LoggerT &logger, bool registered = true):
                 fd(fd), el(el), logger(logger), registered(registered)
         {
             logger->debug("New connection created with fd={}", fd);
@@ -105,7 +105,7 @@ namespace c10k
         template<typename ...Ts>
         static std::shared_ptr<Connection> create(Ts &&... ts)
         {
-            return std::make_shared<Connection>(std::forward<Ts>(ts)...);
+            return std::make_shared<Connection>(HiddenTag{}, std::forward<Ts>(ts)...);
         }
 
         int getFD() const
