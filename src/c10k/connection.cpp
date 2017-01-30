@@ -140,14 +140,14 @@ namespace c10k
         std::lock_guard<std::recursive_mutex> lk(mutex);
         if (!is_closed()) {
             try {
-                if (e.event_type.is_err())
-                    throw std::runtime_error("Socket is closed");
                 if (e.event_type.is(EventCategory::POLLIN))
                     handle_read();
                 if (e.event_type.is(EventCategory::POLLOUT))
                     handle_write();
+                if (e.event_type.is_err())
+                    close();
             } catch (const std::exception &e) {
-                logger->warn("Unexpected event when processing event, closing connection: {}", e.what());
+                logger->warn("Socket closed when processing event, closing connection:", e.what());
                 close();
             }
         }
