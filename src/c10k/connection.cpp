@@ -114,6 +114,8 @@ namespace c10k
                         throw std::system_error(errno, std::system_category());
                     else
                         break;
+                if (write_result == 0)
+                    throw std::runtime_error("Write found socket is closed");
                 req.offset += write_result;
             }
             if (req.offset == req.buf.size()) // write OK
