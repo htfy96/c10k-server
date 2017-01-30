@@ -51,7 +51,12 @@ namespace c10k
             else
             {
                 std::error_code ec(errno, std::system_category());
-                logger->critical("Error in epoll_wait: {}", ec.message());
+                logger->critical("Error in epoll_wait: {} epollfd={}", ec.message(), epollfd);
+                std::lock_guard<std::mutex> lk(map_mutex);
+                for (auto &&pair : fd_to_poll_data)
+                {
+                    logger->debug("fd {} listening", pair.first);
+                }
                 throw std::system_error(ec);
             }
         }
