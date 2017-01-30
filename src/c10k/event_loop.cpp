@@ -51,7 +51,7 @@ namespace c10k
             else
             {
                 std::error_code ec(errno, std::system_category());
-                logger->critical("Error in epoll_wait: {} epollfd={}", ec.message(), epollfd);
+                logger->critical("Error in epoll_wait: {} epollfd={} errno={}", ec.message(), epollfd, errno);
                 std::lock_guard<std::mutex> lk(map_mutex);
                 for (auto &&pair : fd_to_poll_data)
                 {
@@ -142,6 +142,8 @@ namespace c10k
 
     EventLoop::~EventLoop()
     {
-        ::close(epollfd);
+        using detail::call_must_ok;
+        logger->info("Closing epollfd={}", epollfd);
+        call_must_ok(::close, "Close", epollfd);
     }
 }
