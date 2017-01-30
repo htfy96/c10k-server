@@ -13,27 +13,30 @@
 
 struct ServerHandler: public c10k::Handler
 {
-    std::uint16_t len;
+    union {
+        std::uint16_t len_int;
+        char len_chars[2];
+    } len;
     std::vector<char> buffer;
     virtual void handle_init(const c10k::ConnectionPtr &conn) override
     {
         using namespace std::placeholders;
         using std::static_pointer_cast;
-        C10K_READ_ASYNC_THEN_MEMFUN(conn, (char*)&len, sizeof(len), read_buffer);
+        C10K_READ_ASYNC_THEN_MEMFUN(conn, len.len_chars, 2, read_buffer);
     }
 
     void read_buffer(const c10k::ConnectionPtr &conn, char *st, char *ed)
     {
         using namespace std::placeholders;
-        buffer.reserve(len);
-        C10K_READ_ASYNC_THEN_MEMFUN(conn, std::back_inserter(buffer), len, write_back);
+        buffer.reserve(len.len_int);
+        C10K_READ_ASYNC_THEN_MEMFUN(conn, std::back_inserter(buffer), len.len_int, write_back);
     }
 
     void write_back(const c10k::ConnectionPtr &conn, char *st, char *ed) {
         using namespace std::placeholders;
         std::vector<char> wrt_buffer;
-        wrt_buffer.reserve(2 + len);
-        std::copy_n((char *) &len, 2, std::back_inserter(wrt_buffer));
+        wrt_buffer.reserve(2 + len.len_int);
+        std::copy_n(len.len_chars, 2, std::back_inserter(wrt_buffer));
         std::copy(buffer.begin(), buffer.end(), std::back_inserter(wrt_buffer));
         C10K_WRITE_ASYNC_THEN_MEMFUN(conn, wrt_buffer.begin(), wrt_buffer.end(), close_connection);
     }
@@ -49,13 +52,19 @@ std::stringstream ss;
 
 struct ClientHandler: public c10k::Handler
 {
+    union Len
+    {
+        std::uint16_t len_int;
+        char len_chars[2];
+    };
     std::vector<char> gen_data()
     {
         std::vector<char> wrt_buffer;
-        std::uint16_t len = std::rand() % 32768;
-        wrt_buffer.reserve(2 + len);
-        std::copy_n((char *)&len, 2, std::back_inserter(wrt_buffer));
-        std::generate_n(std::back_inserter(wrt_buffer), len, []() {
+        Len len;
+        len.len_int = std::rand() % 32768;
+        wrt_buffer.reserve(2 + len.len_int);
+        std::copy_n(len.len_chars, 2, std::back_inserter(wrt_buffer));
+        std::generate_n(std::back_inserter(wrt_buffer), len.len_int, []() {
             return std::rand() % 128;;
         });
         return wrt_buffer;
