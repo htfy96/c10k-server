@@ -55,7 +55,12 @@ namespace c10k
                 logger->trace("Event registered for fd={}", fd);
                 auto handler = std::make_shared<HandlerT>();
                 logger->trace("Executing handler");
-                handler->handle_init(new_conn);
+                try {
+                    handler->handle_init(new_conn);
+                } catch(const std::exception &e) {
+                    logger->error("An exception is thrown in handle_init: {}. Closing connection", e.what());
+                    new_conn->close();
+                }
             }
 
             std::size_t active_connection_num() const
