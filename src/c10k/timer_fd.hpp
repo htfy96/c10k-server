@@ -25,6 +25,9 @@ public:
         timerfd_settime(fd, 0, &its, nullptr);
     }
 
+    TimerFD(const TimerFD&) = delete;
+    TimerFD &operator=(const TimerFD &) = delete;
+
     int getfd() const
     {
         return fd;
