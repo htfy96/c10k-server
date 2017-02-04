@@ -30,37 +30,46 @@ set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp
         src/c10k/event_loop.hpp src/c10k/event_loop.cpp
         src/c10k/timer_fd.hpp src/c10k/queue.hpp
         src/c10k/connection.hpp src/c10k/connection.cpp
-        src/c10k/worker_thread.hpp src/c10k/handler.hpp)
+        src/c10k/worker_thread.hpp src/c10k/handler.hpp
+        src/c10k/expire_record.hpp)
 add_library(c10k STATIC ${c10k_SOURCE})
 target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 
 if (c10k-build_tests)
     enable_testing()
 
-    add_executable(event_loop-test test/event_loop_test.cpp test/test_main.cpp test/test_common.hpp)
+    add_library(catch-test-main STATIC test/test_common.hpp test/test_main.cpp)
+    target_include_directories(catch-test-main PUBLIC ${Catch_INCLUDE_DIR})
+
+    add_executable(event_loop-test test/event_loop_test.cpp test/test_common.hpp)
     target_include_directories(event_loop-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(event_loop-test c10k)
+    target_link_libraries(event_loop-test c10k catch-test-main)
 
-    add_executable(endian-test test/endian_test.cpp test/test_main.cpp)
+    add_executable(endian-test test/endian_test.cpp)
     target_include_directories(endian-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(endian-test c10k)
+    target_link_libraries(endian-test c10k catch-test-main)
 
-    add_executable(queue-test test/queue_test.cpp test/test_main.cpp)
+    add_executable(queue-test test/queue_test.cpp)
     target_include_directories(queue-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(queue-test c10k)
+    target_link_libraries(queue-test c10k catch-test-main)
 
-    add_executable(connection-test test/connection_test.cpp test/test_main.cpp test/test_common.hpp)
+    add_executable(connection-test test/connection_test.cpp test/test_common.hpp)
     target_include_directories(connection-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(connection-test c10k)
+    target_link_libraries(connection-test c10k catch-test-main)
 
-    add_executable(worker_thread-test test/worker_thread_test.cpp test/test_main.cpp test/test_common.hpp)
+    add_executable(worker_thread-test test/worker_thread_test.cpp test/test_common.hpp)
     target_include_directories(worker_thread-test PUBLIC ${Catch_INCLUDE_DIR})
-    target_link_libraries(worker_thread-test c10k)
+    target_link_libraries(worker_thread-test c10k catch-test-main)
+
+    add_executable(expire_record-test test/expire_record_test.cpp test/test_common.hpp)
+    target_include_directories(expire_record-test PUBLIC ${Catch_INCLUDE_DIR})
+    target_link_libraries(expire_record-test c10k catch-test-main)
 
     add_test(event_loop_test event_loop-test)
     add_test(endian_test endian-test)
     add_test(queue_test queue-test)
     add_test(connection_test connection-test)
     add_test(worker_thread_test worker_thread-test)
+    add_test(expire_record_test expire_record-test)
 endif()
 
