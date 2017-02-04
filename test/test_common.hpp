@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <thread>
 inline void make_socket_nonblocking(int socketfd)
 {
     using namespace c10k::detail;
