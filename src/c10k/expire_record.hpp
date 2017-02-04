@@ -51,16 +51,26 @@ namespace c10k
         void ExpireRecord<T>::push_element(const T &val)
         {
             auto iter = last_visit_list.insert(last_visit_list.end(), ExpData{val, std::chrono::steady_clock::now()});
-            auto it = map_to_node.insert(std::make_pair(val, iter));
-            assert(it.second);
+            try {
+                auto it = map_to_node.insert(std::make_pair(val, iter));
+                assert(it.second);
+            } catch(...) {
+                last_visit_list.erase(iter);
+                throw;
+            }
         }
 
         template<typename T>
         void ExpireRecord<T>::push_element(T &&val)
         {
             auto iter = last_visit_list.insert(last_visit_list.end(), ExpData{val, std::chrono::steady_clock::now()});
-            auto it = map_to_node.insert(std::make_pair(std::move(val), iter));
-            assert(it.second);
+            try {
+                auto it = map_to_node.insert(std::make_pair(std::move(val), iter));
+                assert(it.second);
+            } catch(...) {
+                last_visit_list.erase(iter);
+                throw;
+            }
         }
 
         template<typename T>
@@ -71,9 +81,14 @@ namespace c10k
             IteratorT list_old_iter = it->second;
             ExpData new_data = *list_old_iter;
             new_data.last_visit = std::chrono::steady_clock::now();
-            last_visit_list.erase(list_old_iter);
             auto list_new_iter = last_visit_list.insert(last_visit_list.end(), new_data);
-            it->second = list_new_iter;
+            try {
+                it->second = list_new_iter;
+            } catch(...) {
+                it->second = list_old_iter;
+                throw;
+            }
+            last_visit_list.erase(list_old_iter);
         }
 
         template<typename T>
