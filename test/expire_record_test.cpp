@@ -58,4 +58,22 @@ TEST_CASE("ExpireRecord should handle various conditions", "[ExpireRecord]")
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 3) != expired.cend());
     }
 
+    SECTION("Add after remove after 75ms. then remove after 50ms") {
+        cur_sleep_for(75ms);
+        // cur_point: 125ms. Elements 0, 1, 2 should be removed
+        auto expired = er.get_expired_and_remove();
+        REQUIRE(expired.size() == 3);
+        REQUIRE(std::find(expired.cbegin(), expired.cend(), 0) != expired.cend());
+        REQUIRE(std::find(expired.cbegin(), expired.cend(), 1) != expired.cend());
+        REQUIRE(std::find(expired.cbegin(), expired.cend(), 2) != expired.cend());
+
+        er.push_element(5);
+        cur_sleep_for(50ms);
+        // cur_point: 175ms. 3, 4 should be removed
+        auto new_expired = er.get_expired_and_remove();
+        REQUIRE(new_expired.size() == 2);
+        REQUIRE(std::find(new_expired.cbegin(), new_expired.cend(), 3) != new_expired.cend());
+        REQUIRE(std::find(new_expired.cbegin(), new_expired.cend(), 4) != new_expired.cend());
+    }
+
 }
