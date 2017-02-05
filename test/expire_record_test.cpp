@@ -13,12 +13,12 @@ TEST_CASE("ExpireRecord should handle various conditions", "[ExpireRecord]")
     using c10k::detail::ExpireRecord;
     using namespace std::chrono_literals;
 
-    ExpireRecord<int> er(100ms);
+    ExpireRecord<int> er(200ms);
 
     for (int i=0; i<5; ++i)
     {
         er.push_element(i);
-        cur_sleep_for(10ms);
+        cur_sleep_for(20ms);
     }
 
     SECTION("remove_expired are called immediately")
@@ -27,29 +27,30 @@ TEST_CASE("ExpireRecord should handle various conditions", "[ExpireRecord]")
         REQUIRE(expired.empty());
     }
 
-    SECTION("remove_expired are called after 25ms")
+    SECTION("remove_expired are called after 50ms")
     {
         // 0,   10,     20,     30,     40,     50,         75
         // +0   +1      +2       +3      +4
-        cur_sleep_for(25ms);
+        cur_sleep_for(50ms);
+        // cur_point: 150ms
         auto expired = er.get_expired_and_remove();
         REQUIRE(expired.empty());
     }
 
-    SECTION("remove_expired are called after 65ms")
+    SECTION("remove_expired are called after 130ms")
     {
-        // cur_point: 115ms. Element 0, 1 should be removed
-        cur_sleep_for(65ms);
+        // cur_point: 230ms. Element 0, 1 should be removed
+        cur_sleep_for(130ms);
         auto expired =er.get_expired_and_remove();
         REQUIRE(expired.size() == 2);
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 0) != expired.cend());
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 1) != expired.cend());
     }
 
-    SECTION("remove_expired are called after 85ms")
+    SECTION("remove_expired are called after 170ms")
     {
-        // cur_point: 135ms. Element 0, 1, 2, 3 should be removed
-        cur_sleep_for(85ms);
+        // cur_point: 270ms. Element 0, 1, 2, 3 should be removed
+        cur_sleep_for(170ms);
         auto expired =er.get_expired_and_remove();
         REQUIRE(expired.size() == 4);
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 0) != expired.cend());
@@ -58,9 +59,9 @@ TEST_CASE("ExpireRecord should handle various conditions", "[ExpireRecord]")
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 3) != expired.cend());
     }
 
-    SECTION("Add after remove after 75ms. then remove after 50ms") {
-        cur_sleep_for(75ms);
-        // cur_point: 125ms. Elements 0, 1, 2 should be removed
+    SECTION("Add after remove after 150ms. then remove after 100ms") {
+        cur_sleep_for(150ms);
+        // cur_point: 250ms. Elements 0, 1, 2 should be removed
         auto expired = er.get_expired_and_remove();
         REQUIRE(expired.size() == 3);
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 0) != expired.cend());
@@ -68,8 +69,8 @@ TEST_CASE("ExpireRecord should handle various conditions", "[ExpireRecord]")
         REQUIRE(std::find(expired.cbegin(), expired.cend(), 2) != expired.cend());
 
         er.push_element(5);
-        cur_sleep_for(50ms);
-        // cur_point: 175ms. 3, 4 should be removed
+        cur_sleep_for(100ms);
+        // cur_point: 350ms. 3, 4 should be removed
         auto new_expired = er.get_expired_and_remove();
         REQUIRE(new_expired.size() == 2);
         REQUIRE(std::find(new_expired.cbegin(), new_expired.cend(), 3) != new_expired.cend());
