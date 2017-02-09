@@ -57,23 +57,27 @@ build-clang3.8-release:
 test-raw:
     stage: test
     script:
+        - cd build
         - logbt --setup
         - logbt -- ctest --output-on-failure
 
 test-valgrind:
     stage: test
     script:
+        - cd build
         - logbt --setup
         - logbt -- valgrind --track-fds=yes ctest --output-on-failure
 
 test-drd:
     stage: test
     script:
+        - cd build
         - logbt --setup
         - logbt -- valgrind --track-fds=yes --tool=drd ctest --output-on-failure
 
 test-helgrind:
     stage: test
     script:
+        - cd build
         - logbt --setup
         - logbt -- valgrind --track-fds=yes --tool=helgrind ctest --output-on-failure
