@@ -1,16 +1,28 @@
 image: htfy96/build-image:lite
 
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+
+cache:
+    paths:
+        - build/
+
 stages:
-    - build
-    - test
+    - buildandtest
 
 .build_template: &build_definition
-    stage: build
+    stage: buildandtest
     script:
-        - apt-get update && apt-get install git -yy && git submodule update --init --recursive
         - mkdir -p build && cd build && rm -rf *
         - cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
         - make -j4
+        - logbt -- ctest --output-on-failure
+        - logbt -- valgrind --track-fds=yes ctest --output-on-failure
+        - logbt -- valgrind --track-fds=yes --tool=drd ctest --output-on-failure
+        - logbt -- valgrind --track-fds=yes --tool=helgrind ctest --output-on-failure
+    artifacts:
+        paths:
+            - build/
 
 build-gcc4.9-debug:
     <<: *build_definition
@@ -53,31 +65,3 @@ build-clang3.8-release:
         X_CC: clang-3.8
         X_CXX: clang++-3.8
         BUILD_TYPE: Release
-
-test-raw:
-    stage: test
-    script:
-        - cd build
-        - logbt --setup
-        - logbt -- ctest --output-on-failure
-
-test-valgrind:
-    stage: test
-    script:
-        - cd build
-        - logbt --setup
-        - logbt -- valgrind --track-fds=yes ctest --output-on-failure
-
-test-drd:
-    stage: test
-    script:
-        - cd build
-        - logbt --setup
-        - logbt -- valgrind --track-fds=yes --tool=drd ctest --output-on-failure
-
-test-helgrind:
-    stage: test
-    script:
-        - cd build
-        - logbt --setup
-        - logbt -- valgrind --track-fds=yes --tool=helgrind ctest --output-on-failure
