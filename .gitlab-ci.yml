@@ -1,0 +1,78 @@
+image: htfy96/build-image:lite
+
+stages:
+    - build
+    - test
+
+.build_template: &build_definition
+    stage: build
+    script:
+        - mkdir -p build && cd build && rm -rf *
+        - cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+        - make -j4
+
+build-gcc4.9-debug:
+    <<: *build_definition
+    variables:
+        X_CC: gcc-4.9
+        X_CXX: g++-4.9
+        BUILD_TYPE: Debug
+
+build-gcc4.9-release:
+    <<: *build_definition
+    variables:
+        X_CC: gcc-4.9
+        X_CXX: g++-4.9
+        BUILD_TYPE: Release
+
+build-gcc5-debug:
+    <<: *build_definition
+    variables:
+        X_CC: gcc-5
+        X_CXX: g++-5
+        BUILD_TYPE: Debug
+
+build-gcc5-release:
+    <<: *build_definition
+    variables:
+        X_CC: gcc-5
+        X_CXX: g++-5
+        BUILD_TYPE: Release
+
+build-clang3.8-debug:
+    <<: *build_definition
+    variables:
+        X_CC: clang-3.8
+        X_CXX: clang++-3.8
+        BUILD_TYPE: Debug
+
+build-clang3.8-release:
+    <<: *build_definition
+    variables:
+        X_CC: clang-3.8
+        X_CXX: clang++-3.8
+        BUILD_TYPE: Release
+
+test-raw:
+    stage: test
+    script:
+        - logbt --setup
+        - logbt -- ctest --output-on-failure
+
+test-valgrind:
+    stage: test
+    script:
+        - logbt --setup
+        - logbt -- valgrind --track-fds=yes ctest --output-on-failure
+
+test-drd:
+    stage: test
+    script:
+        - logbt --setup
+        - logbt -- valgrind --track-fds=yes --tool=drd ctest --output-on-failure
+
+test-helgrind:
+    stage: test
+    script:
+        - logbt --setup
+        - logbt -- valgrind --track-fds=yes --tool=helgrind ctest --output-on-failure
