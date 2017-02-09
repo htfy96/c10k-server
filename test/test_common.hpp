@@ -52,4 +52,10 @@ inline void cur_sleep_for(std::chrono::milliseconds ms)
     std::this_thread::sleep_for(ms);
 }
 
+template< class Clock, class Duration >
+void cur_sleep_until( const std::chrono::time_point<Clock,Duration>& sleep_time )
+{
+    std::this_thread::sleep_until(sleep_time);
+};
+
 #endif //C10K_SERVER_TEST_COMMON_HPP
