@@ -13,7 +13,7 @@ stages:
 .build_template: &build_definition
     stage: buildandtest
     script:
-        - mkdir -p build && cd build && rm -rf *
+        - mkdir -p build && cd build 
         - cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
         - make -j4
         - logbt -- ctest --output-on-failure
