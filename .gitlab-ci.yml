@@ -23,6 +23,7 @@ stages:
     artifacts:
         paths:
             - build/
+        when: on_failure
 
 build-gcc4.9-debug:
     <<: *build_definition
