@@ -7,6 +7,7 @@ stages:
 .build_template: &build_definition
     stage: build
     script:
+        - apt-get update && apt-get install git -yy && git submodule update --init --recursive
         - mkdir -p build && cd build && rm -rf *
         - cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
         - make -j4
