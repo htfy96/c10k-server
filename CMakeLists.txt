@@ -38,7 +38,7 @@ target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 
 if (c10k-build_tests)
     enable_testing()
-    set(c10k_TEST_COMMON test/test_common.hpp test/handler/pingpong_handler.hpp)
+    set(c10k_TEST_COMMON test/test_common.hpp test/handler/pingpong_handler.hpp test/worker/worker.hpp)
 
     add_library(catch-test-main STATIC test/test_common.hpp test/test_main.cpp)
     target_include_directories(catch-test-main PUBLIC ${Catch_INCLUDE_DIR})
