@@ -10,6 +10,8 @@
 #include <type_traits>
 namespace c10k
 {
+    class Connection;
+    using ConnectionPtr = std::shared_ptr<Connection>;
     // interface for handler
     struct Handler: std::enable_shared_from_this<Handler>
     {
