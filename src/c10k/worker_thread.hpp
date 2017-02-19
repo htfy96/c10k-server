@@ -34,7 +34,9 @@ namespace c10k
             }
 
             WorkerThread(const WorkerThread&) = delete;
+            WorkerThread(WorkerThread&&) = default;
             WorkerThread &operator=(const WorkerThread &) = delete;
+            WorkerThread &operator=(WorkerThread &&) = default;
 
             void operator() ()
             {
@@ -47,6 +49,7 @@ namespace c10k
                 }
             }
 
+            // Precondition: fd is nonblocking and !closed
             void add_new_connection(int fd)
             {
                 logger->debug("Adding new fd={}", fd);

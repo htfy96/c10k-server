@@ -11,8 +11,6 @@
 #include <sstream>
 #include <iostream>
 #include <cstdio>
-#include <execinfo.h>
-#include <unistd.h>
 
 #include "handler/pingpong_handler.hpp"
 #include "worker/worker.hpp"
