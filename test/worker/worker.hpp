@@ -9,6 +9,8 @@
 #include <functional>
 #include <spdlog/spdlog.h>
 #include "../test_common.hpp"
+#include <execinfo.h>
+#include <unistd.h>
 
 class Acceptor
 {
