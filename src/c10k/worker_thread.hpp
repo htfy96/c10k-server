@@ -17,9 +17,16 @@ namespace c10k
 {
     namespace detail
     {
+        struct WorkerThreadInterface
+        {
+            virtual void operator() () = 0;
+            virtual void add_new_connection(int fd) = 0;
+            virtual void stop() = 0;
+        };
+
         // WorkerThread
         template<typename HandlerT>
-        class WorkerThread
+        class WorkerThread: public WorkerThreadInterface
         {
         private:
             EventLoop loop;

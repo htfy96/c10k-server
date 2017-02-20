@@ -10,8 +10,9 @@
 
 namespace c10k
 {
-    template <typename HandlerT>
-    using WorkerThreadPool = detail::RoundRobinPool<detail::WorkerThread<HandlerT>>;
+    namespace detail {
+        using WorkerThreadPool = detail::RoundRobinPool;
+    }
 }
 
 #endif //C10K_SERVER_WORKER_THREAD_POOL_HPP

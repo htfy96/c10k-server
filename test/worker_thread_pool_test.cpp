@@ -19,7 +19,9 @@ TEST_CASE("WorkerThreadPool should work for multiple threads", "[worker_thread][
     auto server_logger = spdlog::stdout_color_mt("Server"), client_logger = spdlog::stdout_color_mt("Client"),
             debug_logger = spdlog::stdout_color_mt("DEBUG"), acceptor_logger(spdlog::stdout_color_mt("Acceptor"));
 
-    WorkerThreadPool<ServerHandler> pool(4, 1024, server_logger);
+    detail::WorkerThreadPool pool(server_logger);
+    for (int i=0; i<4; ++i)
+        pool.addWorker(std::make_unique<detail::WorkerThread<ServerHandler>>(1024, server_logger));
 
     std::thread server_t([&]() {
         pool.join();

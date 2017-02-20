@@ -9,45 +9,34 @@
 #include <atomic>
 #include <spdlog/spdlog.h>
 #include "utils.hpp"
+#include "worker_thread.hpp"
 
 namespace c10k
 {
     namespace detail
     {
-        // RunnerT should contain the following method:
-        // - RunnerT(int max_event, const Logger &T logger)
-        // - void stop()
-        // - void add_new_connection(int fd)
-        template<typename RunnerT>
+        using WorkerPtr = std::unique_ptr<WorkerThreadInterface>;
         class RoundRobinPool {
-            C10K_GEN_HAS_MEMBER(HasStop, stop);
-            static_assert(HasStop<RunnerT, void()>::value, "RunnerT of RoundRobinPool should have method void stop()");
-            C10K_GEN_HAS_MEMBER(HasAddNewConnection, add_new_connection);
-            static_assert(HasAddNewConnection<RunnerT, void(int)>::value,
-                          "RunnerT of RoundRobinPool should have method void add_new_connection(int fd)");
 
-            using WorkerPtr = std::unique_ptr<RunnerT>;
             std::vector<std::thread> threads;
             std::vector<WorkerPtr> workers;
             std::atomic_int round_robin {0};
-            const int max_event_per_loop;
             std::shared_ptr<spdlog::logger> logger;
             using LoggerT = decltype(logger);
 
         public:
-            RoundRobinPool(int thread_num,
-                             int max_event_per_loop,
-                             const LoggerT &logger = spdlog::stdout_color_mt("c10k_TPool")):
-                    max_event_per_loop(max_event_per_loop),
-                    logger(logger)
+            RoundRobinPool(const LoggerT &logger):
+                logger(logger)
+            {}
+            RoundRobinPool(const RoundRobinPool &) = delete;
+            RoundRobinPool &operator=(const RoundRobinPool &) = delete;
+
+            // new worker will start working immediately
+            // not thread-safe. don't call this along with addConnection
+            void addWorker(WorkerPtr &&workerPtr)
             {
-                workers.reserve(thread_num);
-                threads.reserve(thread_num);
-                for (int i=0; i<thread_num; ++i) {
-                    logger->info("Adding worker {} into WorkerPool", i);
-                    workers.emplace_back(std::make_unique<RunnerT>(max_event_per_loop, logger));
-                    threads.emplace_back(std::ref(*workers[i]));
-                }
+                workers.push_back(std::move(workerPtr));
+                threads.emplace_back(std::ref(**workers.rbegin()));
             }
 
             int getThreadNum() const
