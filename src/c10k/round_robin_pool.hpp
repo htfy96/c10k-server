@@ -8,6 +8,7 @@
 #include <memory>
 #include <atomic>
 #include <spdlog/spdlog.h>
+#include "utils.hpp"
 
 namespace c10k
 {
@@ -19,6 +20,12 @@ namespace c10k
         // - void add_new_connection(int fd)
         template<typename RunnerT>
         class RoundRobinPool {
+            C10K_GEN_HAS_MEMBER(HasStop, stop);
+            static_assert(HasStop<RunnerT, void()>::value, "RunnerT of RoundRobinPool should have method void stop()");
+            C10K_GEN_HAS_MEMBER(HasAddNewConnection, add_new_connection);
+            static_assert(HasAddNewConnection<RunnerT, void(int)>::value,
+                          "RunnerT of RoundRobinPool should have method void add_new_connection(int fd)");
+
             using WorkerPtr = std::unique_ptr<RunnerT>;
             std::vector<std::thread> threads;
             std::vector<WorkerPtr> workers;
