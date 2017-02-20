@@ -14,6 +14,7 @@
 #include <spdlog/spdlog.h>
 #include "worker_thread.hpp"
 #include "queue.hpp"
+#include "utils.hpp"
 
 namespace c10k
 {

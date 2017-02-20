@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <system_error>
 #include <utility>
+#include <type_traits>
 
 namespace c10k
 {
@@ -74,6 +75,32 @@ namespace c10k
         auto make_exit_guard(FT f_at_exit) {
             return make_scope_guard([]() {}, f_at_exit);
         }
+
+        // Adapted from http://stackoverflow.com/a/16824239/4140668
+#define C10K_GEN_HAS_MEMBER(ClassName, MemberName) \
+        template<typename, typename T> \
+        struct ClassName { \
+            static_assert( \
+                    std::integral_constant<T, false>::value, \
+                    "Second template parameter needs to be of function type."); \
+        }; \
+        template<typename C, typename Ret, typename... Args> \
+        struct ClassName<C, Ret(Args...)> { \
+        private: \
+            template<typename T> \
+            static constexpr auto check(T*) \
+            -> typename \
+            std::is_same< \
+                    decltype( std::declval<T>().MemberName( std::declval<Args>()... ) ), \
+                    Ret    \
+            >::type;  \
+            template<typename> \
+            static constexpr std::false_type check(...); \
+            typedef decltype(check<C>(0)) type; \
+        public: \
+            static constexpr bool value = type::value; \
+        };
+
 
     }
 
