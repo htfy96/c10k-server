@@ -33,7 +33,8 @@ set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp
         src/c10k/worker_thread.hpp src/c10k/handler.hpp
         src/c10k/expire_record.hpp
         src/c10k/worker_thread_pool.hpp
-        src/c10k/round_robin_pool.hpp)
+        src/c10k/round_robin_pool.hpp
+        src/c10k/utils.hpp)
 add_library(c10k STATIC ${c10k_SOURCE})
 target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
 
