@@ -12,6 +12,8 @@ stages:
 
 .build_template: &build_definition
     stage: buildandtest
+    tags:
+        - docker
     script:
         - mkdir -p build && cd build 
         - cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
