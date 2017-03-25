@@ -69,7 +69,7 @@ public:
         try {
             for (int i = 0; i < TEST_CNT; ++i) {
                 int cli_fd = create_socket(true);
-                sockaddr_in addr = create_addr("127.0.0.1", 6503);
+                sockaddr_in addr = create_addr(this->addr.c_str(), port);
                 call_must_ok(::connect, "Connect", cli_fd, (sockaddr *) &addr, sizeof(addr));
                 logger->info("New fd added {}: {}/{}", cli_fd, i, TEST_CNT);
                 make_socket_nonblocking(cli_fd);

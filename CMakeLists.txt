@@ -34,6 +34,8 @@ set(c10k_SOURCE src/c10k/c10k.cpp src/c10k/c10k.hpp
         src/c10k/expire_record.hpp
         src/c10k/worker_thread_pool.hpp
         src/c10k/round_robin_pool.hpp src/c10k/round_robin_pool.cpp
+        src/c10k/addr.hpp src/c10k/addr.cpp
+        src/c10k/server_legacy.hpp
         src/c10k/utils.hpp)
 add_library(c10k STATIC ${c10k_SOURCE})
 target_link_libraries(c10k ${CMAKE_THREAD_LIBS_INIT})
@@ -73,6 +75,10 @@ if (c10k-build_tests)
     target_include_directories(worker_thread_pool-test PUBLIC ${Catch_INCLUDE_DIR})
     target_link_libraries(worker_thread_pool-test c10k catch-test-main)
 
+    add_executable(server_legacy-test test/server_legacy_test.cpp ${c10k_TEST_COMMON})
+    target_include_directories(server_legacy-test PUBLIC ${Catch_INCLUDE_DIR})
+    target_link_libraries(server_legacy-test c10k catch-test-main)
+
     add_test(event_loop_test event_loop-test)
     add_test(endian_test endian-test)
     add_test(queue_test queue-test)
@@ -80,5 +86,6 @@ if (c10k-build_tests)
     add_test(worker_thread_test worker_thread-test)
     add_test(expire_record_test expire_record-test)
     add_test(worker_thread_pool_test worker_thread_pool-test)
+    add_test(server_legacy_test server_legacy-test)
 endif()
 
