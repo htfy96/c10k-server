@@ -32,7 +32,7 @@ public:
     {
         using c10k::detail::call_must_ok;
         int main_fd = create_socket();
-        sockaddr_in addr = create_addr("127.0.0.1", 6503);
+        sockaddr_in addr = create_addr(this->addr.c_str(), port);
         call_must_ok(::bind, "Bind", main_fd, (sockaddr*)&addr, sizeof(addr));
         call_must_ok(::listen, "Listen", main_fd, 1024);
         for (int i=0; i<TEST_CNT; ++i)
