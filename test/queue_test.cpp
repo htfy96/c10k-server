@@ -38,8 +38,8 @@ TEST_CASE("Queue in multi producer multi consumer status", "[queue]")
         consumers.emplace_back([&]() {
             while (!stop_consumer.load()) {
                 int result;
-                bbq.pop(result);
-                consumer_cnt.fetch_add(1);
+                if (bbq.try_pop(result))
+                    consumer_cnt.fetch_add(1);
                 std::this_thread::sleep_for(std::chrono::microseconds(std::rand() % 10));
             }
         });
