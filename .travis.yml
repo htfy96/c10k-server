@@ -6,7 +6,11 @@ language: cpp
 services:
     - docker
 
+git:
+    submodules: false
+
 before_install:
+    - git submodule update --init --recursive --remote
     - ulimit -n && sysctl fs.file-max
     - docker pull htfy96/build-image:lite
     - docker run -ti -v $(pwd):/data htfy96/build-image:lite bash -c "cd /data; mkdir -p build && cd build && rm -rf *; cmake -Dc10k-build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .."
